@@ -8,6 +8,18 @@ deployments.
 
 ------------------------------------------------------------------------
 
+## Docker Hub
+
+Pull the latest image:
+
+    docker pull pascalbott/scan2nextcloud:latest
+
+Docker Hub repository:
+
+https://hub.docker.com/r/pascalbott/scan2nextcloud
+
+------------------------------------------------------------------------
+
 ## Features
 
 -   SMB share with username and password authentication
@@ -21,14 +33,26 @@ deployments.
 
 ------------------------------------------------------------------------
 
-## Project Structure
+## Quick Start (Recommended)
 
-    scan2nextcloud/
-    ├── Dockerfile
-    ├── docker-compose.yml
-    ├── start.sh
-    ├── upload.py
-    └── smb.conf
+Clone the repository:
+
+    git clone https://github.com/pascalbott/scan2nextcloud.git
+    cd scan2nextcloud
+
+Create your environment configuration:
+
+    cp .env.example .env
+
+Edit the `.env` file and configure your values.
+
+Start the container:
+
+    docker compose up -d
+
+View logs:
+
+    docker logs -f scan2nextcloud
 
 ------------------------------------------------------------------------
 
@@ -39,23 +63,47 @@ version: "3.8"
 
 services:
   scan2nextcloud:
-    build: .
+    image: pascalbott/scan2nextcloud:latest
     container_name: scan2nextcloud
     ports:
       - "445:445"
     volumes:
       - ./data/scan:/scan
       - ./data/uploaded:/uploaded
-    environment:
-      SMB_USER: "scanner"
-      SMB_PASS: "ChangeMeSecurePassword"
-      NEXTCLOUD_URL: "https://cloud.example.com"
-      NEXTCLOUD_USER: "nextcloud_user"
-      NEXTCLOUD_PASS: "NEXTCLOUD_APP_PASSWORD"
-      NEXTCLOUD_FOLDER: "Documents/Scans"
-      PYTHONUNBUFFERED: "1"
+    env_file:
+      - .env
     restart: unless-stopped
 ```
+
+------------------------------------------------------------------------
+
+## Environment Configuration
+
+This project uses environment variables via a `.env` file.
+
+Example `.env.example`:
+
+    SMB_USER=scanner
+    SMB_PASS=ChangeMeSecurePassword
+
+    NEXTCLOUD_URL=https://cloud.example.com
+    NEXTCLOUD_USER=nextcloud_user
+    NEXTCLOUD_PASS=NEXTCLOUD_APP_PASSWORD
+    NEXTCLOUD_FOLDER=Documents/Scans
+
+Important:
+
+-   Do NOT commit your `.env` file.
+-   Always use a Nextcloud App Password.
+-   The username in the WebDAV path must match `NEXTCLOUD_USER`.
+
+------------------------------------------------------------------------
+
+## Run Without docker-compose
+
+You can also run the container directly:
+
+    docker run -d   -p 445:445   -v $(pwd)/data/scan:/scan   -v $(pwd)/data/uploaded:/uploaded   --env-file .env   pascalbott/scan2nextcloud:latest
 
 ------------------------------------------------------------------------
 
@@ -68,11 +116,6 @@ WebDAV endpoint format:
 Example:
 
     https://cloud.example.com/remote.php/dav/files/nextcloud_user/Documents/Scans
-
-Important: The username in the WebDAV path must match the value of
-NEXTCLOUD_USER.
-
-Always use a Nextcloud App Password instead of your main login password.
 
 ------------------------------------------------------------------------
 
@@ -92,23 +135,11 @@ Username:
 
 Password:
 
-    ChangeMeSecurePassword
+    YourSMBPassword
 
 Network path:
 
     \\192.168.0.150\scan
-
-------------------------------------------------------------------------
-
-## Start the Container
-
-Build and run:
-
-    docker compose up -d --build
-
-View logs:
-
-    docker logs -f scan2nextcloud
 
 ------------------------------------------------------------------------
 
@@ -147,4 +178,4 @@ Printer → SMB → Docker Container → WebDAV → Nextcloud
 
 ## License
 
-Intended for private and internal business use.
+MIT License recommended for open source distribution.
