@@ -1,0 +1,20 @@
+version: "3.8"
+
+services:
+  scan2nextcloud:
+    build: .
+    container_name: scan2nextcloud
+    ports:
+      - "445:445"
+    volumes:
+      - ./data/scan:/scan
+      - ./data/uploaded:/uploaded
+    environment:
+      SMB_USER: ${SMB_USER}
+      SMB_PASS: ${SMB_PASS}
+      NEXTCLOUD_URL: ${NEXTCLOUD_URL}
+      NEXTCLOUD_USER: ${NEXTCLOUD_USER}
+      NEXTCLOUD_PASS: ${NEXTCLOUD_PASS}
+      NEXTCLOUD_FOLDER: ${NEXTCLOUD_FOLDER}
+      PYTHONUNBUFFERED: "1"
+    restart: unless-stopped
