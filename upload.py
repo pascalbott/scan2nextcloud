@@ -38,10 +38,11 @@ logger = logging.getLogger("scan2nextcloud")
 # HELPER
 # ========================
 
-def wait_until_complete(path, timeout=120):
+def wait_until_complete(path, timeout=120, stable_checks=5, check_interval=2):
     logger.info(f"Warte auf stabile Datei: {path}")
     start = time.time()
     last_size = -1
+    stable_count = 0
 
     while time.time() - start < timeout:
         if not os.path.exists(path):
@@ -49,11 +50,16 @@ def wait_until_complete(path, timeout=120):
 
         size = os.path.getsize(path)
         if size == last_size and size > 0:
-            logger.info("Datei ist stabil.")
-            return True
+            stable_count += 1
+            logger.info(f"Datei unverändert ({stable_count}/{stable_checks})")
+            if stable_count >= stable_checks:
+                logger.info("Datei ist stabil.")
+                return True
+        else:
+            stable_count = 0
 
         last_size = size
-        time.sleep(2)
+        time.sleep(check_interval)
 
     logger.warning("Datei wurde nicht stabil innerhalb Timeout.")
     return False
